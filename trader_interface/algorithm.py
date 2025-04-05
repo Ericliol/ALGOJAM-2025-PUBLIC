@@ -44,20 +44,38 @@ class Algorithm():
         
         # I only want to trade the UQ Dollar
         trade_instruments = ["UQ Dollar"]
+        # trade_instruments = ["Dawg Food"]
         
         # Display the prices of instruments I want to trade
         for ins in trade_instruments:
             print(f"{ins}: ${self.get_current_price(ins)}")
-        
-        # Start trading from Day 2 onwards. Buy if it goes down, sell if it goes up.
+
+
         if self.day >= 2:
             for ins in trade_instruments:
-                # if price has gone down buy
-                if self.data[ins][-2] > self.data[ins][-1]:
-                    desiredPositions[ins] = positionLimits[ins]
-                else:
-                    desiredPositions[ins] = -positionLimits[ins]
-        # Display the end of trading day
+                if ins == "UQ Dollar":
+                    upperb = 100
+                    lowerb = 100
+                    if self.get_current_price(ins) > upperb:
+                        desiredPositions[ins] = -positionLimits[ins]
+                    elif self.get_current_price(ins) < lowerb:
+                        desiredPositions[ins] = positionLimits[ins]
+                    # elif self.get_current_price(ins) == 100:
+                    #     desiredPositions[ins] = 0
+                    # else:
+                    #     perc_v = (self.get_current_price(ins) - 100)/ (upperb - lowerb)
+                    #     desiredPositions[ins] = perc_v*positionLimits[ins]
+                    
+        # # Start trading from Day 2 onwards. Buy if price dropped and sell if price rose compared to the previous day
+        # if self.day >= 2:
+        #     for ins in trade_instruments:
+        #         # if price has gone down buy
+        #         if self.data[ins][-2] > self.data[ins][-1]:
+        #             desiredPositions[ins] = positionLimits[ins]
+        #             desiredPositions[ins] = 0
+        #         else:
+        #             desiredPositions[ins] = -positionLimits[ins]
+        # # Display the end of trading day
         print("Ending Algorithm for Day:", self.day, "\n")
         
 
