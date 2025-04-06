@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt 
 
 # Custom trading Algorithm
 class Algorithm():
@@ -18,7 +19,14 @@ class Algorithm():
         # Initialise the current positions
         self.positions = positions
 
+        self.uqDollarActionPrice = 0
         self.dogfEMA = 0
+      
+
+        self.price_history = {}  # Store price history for plotting
+        self.position_history = {}
+
+
     # Helper function to fetch the current price of an instrument
     def get_current_price(self, instrument):
         # return most recent price
@@ -45,8 +53,10 @@ class Algorithm():
         print("Starting Algorithm for Day:", self.day)
         
         # I only want to trade the UQ Dollar
-        trade_instruments = ["UQ Dollar","Dawg Food"]
+        trade_instruments = ["UQ Dollar"]
+        # trade_instruments = ["UQ Dollar","Dawg Food"]
         # trade_instruments = ["Dawg Food"]
+        # trade_instruments = ["Quantum Universal Algorithmic Currency Koin"]
         
         # Display the prices of instruments I want to trade
         for ins in trade_instruments:
@@ -57,17 +67,24 @@ class Algorithm():
             for ins in trade_instruments:
                 print(ins)
                 if ins == "UQ Dollar":
-                    upperb = 100
-                    lowerb = 100
-                    if self.get_current_price(ins) > upperb:
+                    # upperb = 100
+                    # lowerb = 100
+                    # if self.get_current_price(ins) > upperb:
+                    #     desiredPositions[ins] = -positionLimits[ins]
+                    # elif self.get_current_price(ins) < lowerb:
+                    #     desiredPositions[ins] = positionLimits[ins]
+
+                    buff = 0.1
+                    if (self.get_current_price(ins) - buff > self.uqDollarActionPrice ) and (self.get_current_price(ins) > 100.1):
                         desiredPositions[ins] = -positionLimits[ins]
-                    elif self.get_current_price(ins) < lowerb:
+                    elif (self.get_current_price(ins) + buff < self.uqDollarActionPrice ) and (self.get_current_price(ins) < 100):
                         desiredPositions[ins] = positionLimits[ins]
-                    # elif self.get_current_price(ins) == 100:
-                    #     desiredPositions[ins] = 0
-                    # else:
-                    #     perc_v = (self.get_current_price(ins) - 100)/ (upperb - lowerb)
-                    #     desiredPositions[ins] = perc_v*positionLimits[ins]
+                    else:
+                        desiredPositions[ins] = self.positions[ins]
+
+                    if desiredPositions[ins] != self.positions[ins]:
+                        self.uqDollarActionPrice = self.get_current_price(ins)
+                    
                 elif ins == "Dawg Food":
                    
                     period = 35
@@ -100,9 +117,52 @@ class Algorithm():
         #         else:
         #             desiredPositions[ins] = -positionLimits[ins]
         # # Display the end of trading day
+        for ins in trade_instruments:
+            if ins not in self.price_history:
+                self.price_history[ins] = []
+                self.position_history[ins] = []
+            self.price_history[ins].append(self.get_current_price(ins))
+            self.position_history[ins].append(desiredPositions[ins])
+
         print("Ending Algorithm for Day:", self.day, "\n")
         
 
         #######################################################################
         # Return the desired positions
         return desiredPositions
+
+
+    def plot_data(self):
+        # Plot current_price against day with buy/sell markers
+        plt.figure(figsize=(24, 6))
+        for instrument, prices in self.price_history.items():
+            days = range(len(prices))
+            plt.plot(days, prices, label=f"{instrument} Price")
+
+            # Add buy/sell markers
+            if instrument in self.position_history:
+                positions = self.position_history[instrument]
+                for i in range(1, len(positions)):
+                    if positions[i] > positions[i - 1]:  # Buy signal
+                        plt.scatter(i, prices[i], color='green', label="Buy" if i == 1 else "", zorder=5)
+                    elif positions[i] < positions[i - 1]:  # Sell signal
+                        plt.scatter(i, prices[i], color='red', label="Sell" if i == 1 else "", zorder=5)
+
+        plt.xlabel("Day")
+        plt.ylabel("Price")
+        plt.title("Price vs Day with Buy/Sell Markers")
+        plt.legend()
+        plt.savefig("price_vs_day_with_markers.png")  # Save the figure
+        plt.show()
+
+
+        # Plot change in position against day
+        plt.figure(figsize=(24, 6))
+        for instrument, positions in self.position_history.items():
+            plt.plot(range(len(positions)), positions, label=f"{instrument} Position")
+        plt.xlabel("Day")
+        plt.ylabel("Position")
+        plt.title("Position vs Day")
+        plt.legend()
+        plt.savefig("position_vs_day.png")  # Save the figure
+        plt.show()
