@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
+from scipy.stats import zscore
+
 # Custom trading Algorithm
 class Algorithm():
 
@@ -53,10 +55,12 @@ class Algorithm():
         print("Starting Algorithm for Day:", self.day)
         
         # I only want to trade the UQ Dollar
-        trade_instruments = ["UQ Dollar"]
+        # trade_instruments = ["UQ Dollar"]
         # trade_instruments = ["UQ Dollar","Dawg Food"]
         # trade_instruments = ["Dawg Food"]
         # trade_instruments = ["Quantum Universal Algorithmic Currency Koin"]
+        trade_instruments = ["Rare Watch"]
+        # trade_instruments = ["Goober Eats"]
         
         # Display the prices of instruments I want to trade
         for ins in trade_instruments:
@@ -105,6 +109,73 @@ class Algorithm():
                         else:
                             desiredPositions[ins] = -positionLimits[ins]
 
+                elif ins == "Quantum Universal Algorithmic Currency Koin":
+
+                    buff = 0.001
+                    longShortRatio = 0.4
+                    if self.day >= 2:
+                        if (2.2 - buff) <= self.get_current_price(ins) <= (2.2 + buff):
+                            print("BUy partial in")
+                            desiredPositions[ins] = longShortRatio*positionLimits[ins]
+                        elif 2.44 < self.get_current_price(ins) :
+                            print("Sell all in")
+                            desiredPositions[ins] = -positionLimits[ins]
+                        elif self.get_current_price(ins) < 1.96:
+                            print("BUY all in")
+                            desiredPositions[ins] = positionLimits[ins]
+                        else:
+                            # print("No action taken")
+                            # desiredPositions[ins] = self.position_history[ins][-1]
+                            if self.data[ins][-2] > self.data[ins][-1]:
+                                desiredPositions[ins] = positionLimits[ins]
+                                
+                            else:
+                                desiredPositions[ins] = -positionLimits[ins]
+                elif ins == "Rare Watch":
+                        if self.day >= 2:
+                            buff =0.4
+                            # ratio = 0.4
+
+                            diff2 = self.data[ins][-3] -self.data[ins][-2]
+                            diff1 = self.data[ins][-2] -self.data[ins][-1]
+                            # if abs(abs(diff2) - abs(diff1)) > buff and self.day > 3 and diff2 >0  and (diff1<0 and diff2 <0) or (diff1>0 and diff2 >0):
+                            #     desiredPositions[ins] = self.position_history[ins][-1]
+                                
+                            #     # if self.data[ins][-2] - self.data[ins][-1] < 0 and self.position_history[ins][-1] > 0:
+                            #     #     desiredPositions[ins] = -positionLimits[ins]
+
+                            prices = self.data[ins]
+                            current_price = self.get_current_price(ins)
+
+                            # Z-score detection
+                            if self.day >= 5:
+                                if abs(diff1) > buff:   
+                                    desiredPositions[ins] = self.position_history[ins][-1]
+                                elif self.data[ins][-2] > self.data[ins][-1]:
+                                    desiredPositions[ins] = -positionLimits[ins]
+                                    
+                                else:
+                                    desiredPositions[ins] = positionLimits[ins]
+    
+
+                            elif self.data[ins][-2] > self.data[ins][-1]:
+                                desiredPositions[ins] = -positionLimits[ins]
+                                
+                            else:
+                                desiredPositions[ins] = positionLimits[ins]
+
+                elif ins == "Goober Eats":
+                    if self.day >= 2:
+                        for ins in trade_instruments:
+                            # if price has gone down buy
+                            if self.data[ins][-2] > self.data[ins][-1]:
+                                desiredPositions[ins] = positionLimits[ins]
+                                desiredPositions[ins] = 0
+                            else:
+                                desiredPositions[ins] = -positionLimits[ins]
+                        
+
+
                     
                     
         # # Start trading from Day 2 onwards. Buy if price dropped and sell if price rose compared to the previous day
@@ -145,8 +216,10 @@ class Algorithm():
                 for i in range(1, len(positions)):
                     if positions[i] > positions[i - 1]:  # Buy signal
                         plt.scatter(i, prices[i], color='green', label="Buy" if i == 1 else "", zorder=5)
+                        plt.text(i, prices[i], f"Day {i}", color='green', fontsize=10, ha='left', va='bottom')
                     elif positions[i] < positions[i - 1]:  # Sell signal
                         plt.scatter(i, prices[i], color='red', label="Sell" if i == 1 else "", zorder=5)
+                        plt.text(i, prices[i], f"Day {i}", color='red', fontsize=10, ha='left', va='top')
 
         plt.xlabel("Day")
         plt.ylabel("Price")
